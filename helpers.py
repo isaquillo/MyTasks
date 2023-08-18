@@ -11,12 +11,14 @@ def load_state():
     read_counter()
     read_tasks()
     read_categories()
+    read_gui_skin()
 
 
 def save_state():
     save_counter()
     save_tasks()
     save_categories()
+    save_gui_skin()
 
 
 def clear_screen():
@@ -165,4 +167,20 @@ def get_qss_files(path, extension):
         return files
     except Exception as e:
         raise e
-    
+
+
+def read_gui_skin():
+    try:
+        with open("storage/skin.txt", "r") as f:
+            db.DaoTasks.current_gui_skin = f.read()
+    except Exception as e:
+        print("On function read_gui_skin: ")
+        print(e.__str__)
+
+
+def save_gui_skin():
+    try:
+        with open("storage/skin.txt", "w") as f:
+            f.write(db.DaoTasks.current_gui_skin)
+    except Exception as e:
+        print(e.__str__)

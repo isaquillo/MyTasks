@@ -38,6 +38,7 @@ class DaoTasks:
     list_of_categories = []
     counter = 0
     changes_on_state = False
+    current_gui_skin = None
 
     @staticmethod
     def add(name, description, start_date, end_date, category, percentage, owner):

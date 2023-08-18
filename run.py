@@ -24,8 +24,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.load_table_view_tasks()
-        self.load_style_sheet("gui/qss/QDarkOrange.qss")
-        self.current_skin = "QDarkOrange"
+        self.current_skin = db.DaoTasks.current_gui_skin
+        self.path_skin = "gui/qss/" + self.current_skin + ".qss"
+        self.load_style_sheet(self.path_skin)
         self.there_are_changes = False
         self.actionSave.setEnabled(False)
 
@@ -38,23 +39,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSave.triggered.connect(self.save_state)
         self.actionChangeSkin.triggered.connect(self.change_skin)
 
-        #TODO: Add change skin function (change skin action)
+        # TODO: Add change skin function (change skin action)
 
-        #TODO: Add STATUS column in table view (COMPLETED, WIP, QUEUEUE, DUE)
+        # TODO: Add STATUS column in table view (COMPLETED, WIP, QUEUEUE, DUE)
 
-        #TODO: Add Show Manual Action
+        # TODO: Add Show Manual Action
 
-        #TODO: Add About Action
-
+        # TODO: Add About Action
 
     def change_skin(self):
         change_skin_dialog = DialogChangeSkin(self)
         change_skin_dialog.show()
 
-
     def edit_categories(self):
         pass
-
 
     def save_state(self):
         helpers.save_state()
@@ -72,7 +70,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ):
                 helpers.save_state()
         event.accept()
-    
+
     def show_error_message(self, parent, message):
         QMessageBox.warning(parent, "Error", message)
 
@@ -110,14 +108,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ]
         model.setHorizontalHeaderLabels(headers)
         if not show_completed:
-            list_of_tasks = [task for task in db.DaoTasks.list_of_tasks if task.percentage != "100 %"]
+            list_of_tasks = [
+                task for task in db.DaoTasks.list_of_tasks if task.percentage != "100 %"]
         else:
             list_of_tasks = db.DaoTasks.list_of_tasks
         for row, task in enumerate(list_of_tasks):
             model.setItem(row, 0, QStandardItem(str(task.id)))
-            model.setItem(row, 1, QStandardItem(helpers.get_substring(task.name, 30)))
+            model.setItem(row, 1, QStandardItem(
+                helpers.get_substring(task.name, 30)))
             model.setItem(
-                row, 2, QStandardItem(helpers.get_substring(task.description, 70))
+                row, 2, QStandardItem(
+                    helpers.get_substring(task.description, 70))
             )
             model.setItem(row, 3, QStandardItem(task.start_date))
             model.setItem(row, 4, QStandardItem(task.end_date))
@@ -150,7 +151,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog_create.dateEditEndDate.setDate(date.today())
         dialog_create.save_mode = "create"
         dialog_create.lineEditName.setPlaceholderText("Enter 3-50 characters")
-        dialog_create.textEditDescription.setPlaceholderText("Enter 0-250 characters")
+        dialog_create.textEditDescription.setPlaceholderText(
+            "Enter 0-250 characters")
         dialog_create.comboBoxCategory.setCurrentIndex(0)
         dialog_create.comboBoxPercentage.setCurrentIndex(0)
         dialog_create.lineEditOwner.setPlaceholderText("Enter 3-30 characters")
@@ -291,10 +293,12 @@ class DialogTask(QDialog, TaskDialog):
             window.show_error_message(self, "Name has an incorrect format")
             return False
         if not (helpers.validate_text_length(description, 0, 250)):
-            window.show_error_message(self, "Description has more than 250 characters")
+            window.show_error_message(
+                self, "Description has more than 250 characters")
             return False
         if not helpers.validate_date_format(start_date):
-            window.show_error_message(self, "Start Date has an incorrect format")
+            window.show_error_message(
+                self, "Start Date has an incorrect format")
             return False
         if not helpers.validate_date_format(end_date):
             window.show_error_message(self, "End Date has an incorrect format")
@@ -339,7 +343,7 @@ class DialogCategory(QDialog, CategoryDialog):
         if len(db.DaoTasks.list_of_categories):
             if (
                 window.show_confirmation_message(
-                   self, "Confirmation", "Are you sure to delete the selected category?"
+                    self, "Confirmation", "Are you sure to delete the selected category?"
                 )
                 == QMessageBox.Yes
             ):
@@ -347,24 +351,26 @@ class DialogCategory(QDialog, CategoryDialog):
                 if index.isValid():
                     category = self.listViewCategories.model().data(index)
                     db.DaoTasks.list_of_categories.remove(category)
-                    window.show_success_message(self, "Category deleted successfully!")
-                    
+                    window.show_success_message(
+                        self, "Category deleted successfully!")
+
                     self.load_categories_on_list_view()
                     window.there_are_changes = True
                     window.actionSave.setEnabled(True)
                     self.dialog.load_categories_on_combobox()
                     self.dialog.update()
-                    
+
         else:
             window.show_error_message(self, "There are not categories")
 
     def modify_category(self):
         selected_row = self.listViewCategories.currentIndex()
         if selected_row.isValid():
-            new_text, result = QInputDialog.getText(self, "Modify category", "Enter new name")
+            new_text, result = QInputDialog.getText(
+                self, "Modify category", "Enter new name")
             if result:
                 new_text = new_text.strip()
-                if helpers.validate_text_length(new_text,3,25):
+                if helpers.validate_text_length(new_text, 3, 25):
                     index = self.listViewCategories.currentIndex()
                     category = self.listViewCategories.model().data(index)
                     db.DaoTasks.list_of_categories[
@@ -376,8 +382,9 @@ class DialogCategory(QDialog, CategoryDialog):
                     self.dialog.load_categories_on_combobox()
                     self.dialog.update()
                 else:
-                    window.show_error_message(self, "Category name cannot be empty or greater than 25 characters")
-                
+                    window.show_error_message(
+                        self, "Category name cannot be empty or greater than 25 characters")
+
     def cancel_dialog(self):
         self.close()
 
@@ -386,7 +393,8 @@ class DialogCategory(QDialog, CategoryDialog):
         if helpers.validate_text_length(new_category, 3, 25):
             if new_category not in db.DaoTasks.list_of_categories:
                 db.DaoTasks.list_of_categories.append(new_category)
-                window.show_success_message(self, "Category created successfully!")
+                window.show_success_message(
+                    self, "Category created successfully!")
                 self.load_categories_on_list_view()
                 window.there_are_changes = True
                 window.actionSave.setEnabled(True)
@@ -395,7 +403,8 @@ class DialogCategory(QDialog, CategoryDialog):
             else:
                 window.show_error_message(self, "Category already exists")
         else:
-            window.show_error_message(self, "Category name cannot be empty or greater than 25 characters")
+            window.show_error_message(
+                self, "Category name cannot be empty or greater than 25 characters")
 
 
 class DialogChangeSkin(QDialog, ChangeSkinDialog):
@@ -431,28 +440,29 @@ class DialogChangeSkin(QDialog, ChangeSkinDialog):
                 self.skin_changed = True
                 new_skin = "gui/qss/" + new_skin + ".qss"
                 window.load_style_sheet(new_skin)
-                window.update()     
+                window.update()
             else:
-                window.show_error_message(self, "The selected skin is the same as the current one")
+                window.show_error_message(
+                    self, "The selected skin is the same as the current one")
         else:
             window.show_error_message(self, "There are not skins")
-    
+
     def cancel_dialog(self):
         self.close()
 
     def accept(self):
         window.current_skin = self.temp_skin
+        db.DaoTasks.current_gui_skin = window.current_skin
         window.there_are_changes = True
         self.accept_change = True
         self.close()
-
 
     def closeEvent(self, event):
         if not self.accept_change:
             if self.skin_changed:
                 if (
                     window.show_confirmation_message(
-                       self, "Confirmation", "Do you want to close and cancel skin changes?"
+                        self, "Confirmation", "Do you want to close and cancel skin changes?"
                     )
                     == QMessageBox.Yes
                 ):
@@ -461,7 +471,7 @@ class DialogChangeSkin(QDialog, ChangeSkinDialog):
                     window.update()
                     self.skin_changed = False
                 else:
-                    event.ignore()     
+                    event.ignore()
         event.accept()
 
 
